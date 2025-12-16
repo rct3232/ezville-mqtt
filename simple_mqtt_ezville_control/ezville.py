@@ -182,7 +182,7 @@ config_dir = '/data'
 HA_TOPIC = 'ezville'
 STATE_TOPIC = HA_TOPIC + '/{}/{}/state'
 EW11_TOPIC = 'ew11'
-EW11_SEND_TOPIC = EW11_TOPIC + '/send'
+EW11_SEND_TOPIC = EW11_TOPIC + '/snd'
 
 
 # Main Function
@@ -270,10 +270,10 @@ def ezville_loop(config):
                 client.subscribe([(HA_TOPIC + '/#', 0), ('homeassistant/status', 0)])
             # Mixed인 경우 MQTT 장치 및 EW11의 명령/수신 관련 Topic 과 MQTT Status (Birth/Last Will Testament) Topic 만 구독
             elif comm_mode == 'mixed':
-                client.subscribe([(HA_TOPIC + '/#', 0), (EW11_TOPIC + '/recv', 0), ('homeassistant/status', 0)])
+                client.subscribe([(HA_TOPIC + '/#', 0), (EW11_TOPIC + '/rcv', 0), ('homeassistant/status', 0)])
             # MQTT 인 경우 모든 Topic 구독
             else:
-                client.subscribe([(HA_TOPIC + '/#', 0), (EW11_TOPIC + '/recv', 0), (EW11_TOPIC + '/send', 1), ('homeassistant/status', 0)])
+                client.subscribe([(HA_TOPIC + '/#', 0), (EW11_TOPIC + '/rcv', 0), (EW11_TOPIC + '/send', 1), ('homeassistant/status', 0)])
         else:
             errcode = {1: 'Connection refused - incorrect protocol version',
                        2: 'Connection refused - invalid client identifier',
@@ -330,7 +330,7 @@ def ezville_loop(config):
 
                 if topics[0] == HA_TOPIC and topics[-1] == 'command':
                     await HA_process(topics, msg.payload.decode('utf-8'))
-                elif topics[0] == EW11_TOPIC and topics[-1] == 'recv':
+                elif topics[0] == EW11_TOPIC and topics[-1] == 'rcv':
                     # Que에서 확인된 시간 기준으로 EW11 Health Check함.
                     last_received_time = time.time()
 
@@ -890,7 +890,7 @@ def ezville_loop(config):
             try:
                 # EW11 버퍼 크기만큼 데이터 받기
                 DATA = soc.recv(EW11_BUFFER_SIZE)
-                msg.topic = EW11_TOPIC + '/recv'
+                msg.topic = EW11_TOPIC + '/rcv'
                 msg.payload = DATA   
                 
                 MSG_QUEUE.put(msg)
@@ -976,7 +976,7 @@ def ezville_loop(config):
 
         
     # MQTT 통신
-    mqtt_client = mqtt.Client('mqtt-ezville')
+    mqtt_client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION1,'mqtt-ezville')
     mqtt_client.username_pw_set(config['mqtt_id'], config['mqtt_password'])
     mqtt_client.on_connect = on_connect
     mqtt_client.on_disconnect = on_disconnect
@@ -1043,6 +1043,6 @@ def ezville_loop(config):
 
 if __name__ == '__main__':
     with open(config_dir + '/options.json') as file:
-        CONFIG = json.load(file)
+        CONFIG = json.load(file)["options"]
     
     ezville_loop(CONFIG)

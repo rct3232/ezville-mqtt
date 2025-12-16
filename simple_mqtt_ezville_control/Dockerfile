@@ -12,6 +12,8 @@ RUN pip install --no-cache-dir paho-mqtt
 COPY run.sh /
 COPY ezville.py /
 
+COPY config.json /data/options.json
+
 WORKDIR /share
 
 RUN chmod a+x /run.sh
