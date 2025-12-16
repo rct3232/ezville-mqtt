@@ -13,6 +13,10 @@
 
 > 사전에 MQTT Integration 및 Mosquitto Broker Addon 설치 필수
 
+> HAOS addon이 아닌 Container 별도 구동시 eville.py 최하단<br>
+> CONFIG = json.load(file)**["options"]**<br>
+> 추가 필요
+
 ## 3. 설정 방법
 
 ### 3.1. EW11 설정
